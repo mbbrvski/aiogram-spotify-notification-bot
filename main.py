@@ -3,18 +3,20 @@ from aiogram.filters import Command
 from aiogram.types import Message
 from methods import *
 import os
+import asyncio
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from datetime import datetime, timedelta
 
 bot = Bot(token=os.getenv("BOT_TOKEN"))
 dp = Dispatcher()
 scheduler = AsyncIOScheduler(timezone='Europe/London')
+spotoken = getsptfytoken()
 
 @dp.message(Command(commands=["start"]))
 async def process_start_command(message: Message):
     await message.answer("турн зе музик ОН")
 
-
+asyncio
 @dp.message(Command(commands=["help"]))
 async def help_command(Message):
     await Message.answer(
@@ -44,11 +46,12 @@ async def showsubs(Message):
 
 @dp.message(F.text[0:3].lower() == "саб")
 async def sub2artist(Message):
+    await Message.answer("Начинаю добавление в базу данных, это может занять какое то время...")
     msgansw = bdsubs(Message.text[4:].lower(), True, Message.from_user.id, spotoken)
 
     await Message.answer(msgansw)
     if "такого исполнителя нету: " not in msgansw:
-        await dailyupdatecheck(singlecheck=True, artistname=spotysearchnameid(Message.text[6:].lower(), spotoken)[0])
+        await dailyupdatecheck(spotoken, singlecheck=True, artistname=spotysearchnameid(Message.text[6:].lower(), spotoken)[0])
 
 
 @dp.message(F.text[0:5].lower() == "ансаб")
@@ -57,19 +60,31 @@ async def unsubartist(Message):
 
     await Message.answer(msgansw)
     if "такого исполнителя нету: " not in msgansw:
-        await dailyupdatecheck(singlecheck=True, artistname=spotysearchnameid(Message.text[6:].lower(), spotoken)[0])
+        await dailyupdatecheck(spotoken,singlecheck=True, artistname=spotysearchnameid(Message.text[6:].lower(), spotoken)[0])
 
-async def dailyupdatecheck(singlecheck=False, artistname = 'artistname'):
+async def dailyupdatecheck(spotoken,singlecheck=False, artistname = 'artistname'):
     releases = checkupdates(spotoken,singlecheck,artistname)
     for i in releases.keys():
         print(i)
         await bot.send_message(i, ('ОБНОВОЧКИ\n' + '\n\n'.join(releases[i])))
-def gettoken():
+        bdupdatetime = datetime.now() + timedelta(hours=int(12))
+        scheduler.add_job(dailyupdatecheck, 'date', run_date=bdupdatetime)
+
+async def gettoken():
     spotoken = getsptfytoken()
-    global spotoken
+
+    await dailyupdatecheck(spotoken)
     tokenupdatetime = datetime.now() + timedelta(minutes=int(50))
     scheduler.add_job(gettoken, 'date', run_date=tokenupdatetime)
-if __name__ == "__main__":
-    gettoken()
-    dailyupdatecheck()
-    dp.run_polling(bot)
+
+async def main():
+    print('Бот запущен')
+    scheduler.start()
+    await gettoken()
+    await dailyupdatecheck(spotoken,singlecheck=False, artistname = 'artistname')
+    await dp.start_polling(bot)
+
+
+if __name__ == '__main__':
+    logging.basicConfig(level=logging.INFO)
+    asyncio.run(main())
