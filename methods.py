@@ -5,7 +5,7 @@ import sqlite3
 
 logger = logging.getLogger(__name__)
 
-connection = sqlite3.connect("bot.db")
+connection = sqlite3.connect("sqlite3-dcj1.db")
 cursor = connection.cursor()
 cursor.execute(
     """
