@@ -162,6 +162,7 @@ def addreleases(name, spotoken):
     offset = 0
     limit = 50
     while True:
+        print("цикл добавления")
         releases = spotysearchalbums(truename, spotoken, forbd=True, offset=offset,limit = limit)
         print(releases)
         if not releases:
