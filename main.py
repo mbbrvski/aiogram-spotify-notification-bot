@@ -39,7 +39,7 @@ async def searchalbums(Message):
 async def searchalbums(Message):
     await Message.answer('\n\n'.join('\n'.join(i) for i in spotysearchalbums(name=Message.text[7:],spotoken=spotoken, include = 'album%2Csingle%2Cappears_on%2Ccompilation')))
 
-@dp.message(F.text.lower() == "мои сабки" or F.text.lower() == "сабки" )
+@dp.message(F.text.lower() == "мои сабки")
 async def showsubs(Message):
     await Message.answer(showsubsmethod(Message.from_user.id))
 
@@ -69,6 +69,7 @@ async def dailyupdatecheck(spotoken,singlecheck=False, artistname = 'artistname'
         await bot.send_message(i, ('ОБНОВОЧКИ\n' + '\n\n'.join(releases[i])))
         bdupdatetime = datetime.now() + timedelta(hours=int(12))
         scheduler.add_job(dailyupdatecheck, 'date', run_date=bdupdatetime)
+        print('конец апдейтчека')
 
 async def gettoken():
     spotoken = getsptfytoken()

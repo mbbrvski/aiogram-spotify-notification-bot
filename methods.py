@@ -47,6 +47,7 @@ def getsptfytoken():  # сгенерить токен споти апи
             "client_secret": "564c3935fe1f43ada56766e6440796fe",
         },
     )
+    print("getsptfytoken")
     return (
         spotoken.json()["access_token"]
         if spotoken.status_code == 200
@@ -55,6 +56,7 @@ def getsptfytoken():  # сгенерить токен споти апи
 
 
 def spotysearchnameid(name, spotoken):  # вернуть айди музыканта
+    print("spotysearchnameid")
     artistid = requests.get(
         url="https://api.spotify.com/v1/search"
         + f"?q={name.replace(' ', '+')}&type=artist",
@@ -90,6 +92,7 @@ def sortcriteria(release):
 
 def spotysearchalbums(name, spotoken, include = 'album%2Csingle%2Cappears_on%2Ccompilation',offset = 0,forbd = False,limit=30):
     truename,trueid = spotysearchnameid(name, spotoken)
+    print("spotysearchalbums")
     if truename == False:
         return "такого исполнителя нету: " + name
     sptalbums = requests.get(
@@ -114,6 +117,7 @@ def spotysearchalbums(name, spotoken, include = 'album%2Csingle%2Cappears_on%2Cc
 
 
 def bdsubs(name,dosub : bool, userid, spotoken):
+    print("bdsubs")
     truename,trueid = spotysearchnameid(name, spotoken)
     if truename == False:
         return "такого исполнителя нету: " + name
@@ -121,6 +125,7 @@ def bdsubs(name,dosub : bool, userid, spotoken):
     cursor = connection.cursor()
     cursor.execute('SELECT artistid FROM Users WHERE artistid = ? and userid =?',(trueid,userid))
     usersubstatus = cursor.fetchall()
+    print("bdsubsend")
     if not usersubstatus and dosub:
         cursor.execute('INSERT INTO Users (userid, artistname, artistid, artisturl) VALUES (?, ?, ?, ?)', (userid, truename, trueid, "https://open.spotify.com/artist/" + trueid))
         cursor.execute('SELECT artistname FROM Releases WHERE artistname = ?',(truename,))
@@ -149,6 +154,7 @@ def bdsubs(name,dosub : bool, userid, spotoken):
 
 
 
+
 def addreleases(name, spotoken):
     connection = sqlite3.connect("bot.db")
     cursor = connection.cursor()
@@ -164,6 +170,7 @@ def addreleases(name, spotoken):
             artistname, releasename, releasedate, releasetype, releaseurl, artistsids, artisturls = i
             cursor.execute('INSERT INTO Releases (artistname, artistid, releasename, releasetype, releasedate, releaseurl, artistsids, artisturl) VALUES (?, ?, ?, ?, ?, ?, ?,?)', (artistname, trueid, releasename, releasetype, releasedate, releaseurl, artistsids, artisturls))
         offset += 50
+    print("addreleases")
     connection.commit()
     connection.close()
 def delreleases(name, spotoken):
@@ -172,6 +179,7 @@ def delreleases(name, spotoken):
     cursor = connection.cursor()
     cursor.execute('SELECT artistname FROM Users WHERE artistname = ?',(truename,))
     userdata = cursor.fetchall()
+    print("delreleases")
     if not userdata:
         cursor.execute('DELETE FROM Releases WHERE artistname = ?', (truename,))
     else:
@@ -181,10 +189,12 @@ def delreleases(name, spotoken):
 
 
 def showsubsmethod(userid):
+    print("showsubsmethod")
     connection = sqlite3.connect("bot.db")
     cursor = connection.cursor()
     cursor.execute('SELECT artistname, artisturl FROM Users WHERE userid = ?', (userid,))
     info = cursor.fetchall()
+    print("showsubsmethodend")
     return "Ваши подписки:\n" + "\n".join(' - '.join(i) for i in info)
 
 #def updatenotifier(updates)
@@ -228,4 +238,5 @@ def checkupdates(spotoken,singlecheck=False, artistname = 'artistname'):
     connection.commit()
     connection.close()
     print(updateresult)
+    print("прочекал апдейты")
     return updateresult
