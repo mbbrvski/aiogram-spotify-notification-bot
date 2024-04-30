@@ -135,7 +135,7 @@ def bdsubs(name,dosub : bool, userid, spotoken):
         if not addinfo:
             addreleases(truename, spotoken)
         else:
-            checkupdates(spotoken, singlecheck=True, artistname=[[truename]])
+            checkupdates(spotoken, singlecheck=True, artistname=truename)
         return "Вы подписались на "+ truename + "\n" + "https://open.spotify.com/artist/" + trueid
     elif usersubstatus and dosub:
         connection.commit()
@@ -200,7 +200,6 @@ def showsubsmethod(userid):
     print("showsubsmethodend")
     return "Ваши подписки:\n" + "\n".join(' - '.join(i) for i in info)
 
-#def updatenotifier(updates)
 def checkupdates(spotoken,singlecheck=False, artistname = 'artistname'):
     connection = sqlite3.connect("bot.db")
     cursor = connection.cursor()

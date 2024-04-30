@@ -73,12 +73,12 @@ async def dailyupdatecheck(spotoken,singlecheck=False, artistname = 'artistname'
 async def gettoken():
     spotoken = getsptfytoken()
     print('взял токен')
-    tokenupdatetime = datetime.now() + timedelta(minutes=int(50))
-    scheduler.add_job(gettoken, 'date', run_date=tokenupdatetime)
 
 async def main():
     print('Бот запущен')
     scheduler.start()
+    scheduler.add_job(gettoken, 'interval', minutes=55)
+    scheduler.add_job(dailyupdatecheck, 'interval', hours=12,args=[spotoken])
     await gettoken()
     await dailyupdatecheck(spotoken,singlecheck=False, artistname = 'artistname')
     await dp.start_polling(bot)
