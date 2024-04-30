@@ -50,8 +50,9 @@ async def sub2artist(Message):
     msgansw = bdsubs(Message.text[4:].lower(), True, Message.from_user.id, spotoken)
 
     await Message.answer(msgansw)
-    if "такого исполнителя нету: " not in msgansw:
-        await dailyupdatecheck(spotoken, singlecheck=True, artistname=spotysearchnameid(Message.text[6:].lower(), spotoken)[0])
+    if "Вы подписались на" in msgansw or 'Вы уже подписаны на' in msgansw:
+        print('сабчекчик')
+        await dailyupdatecheck(spotoken, singlecheck=True, artistname=spotysearchnameid(Message.text[4:].lower(), spotoken)[0])
 
 
 @dp.message(F.text[0:5].lower() == "ансаб")
@@ -59,8 +60,6 @@ async def unsubartist(Message):
     msgansw = bdsubs(Message.text[6:].lower(), False, Message.from_user.id, spotoken)
 
     await Message.answer(msgansw)
-    if "такого исполнителя нету: " not in msgansw:
-        await dailyupdatecheck(spotoken,singlecheck=True, artistname=spotysearchnameid(Message.text[6:].lower(), spotoken)[0])
 
 async def dailyupdatecheck(spotoken,singlecheck=False, artistname = 'artistname'):
     releases = checkupdates(spotoken,singlecheck,artistname)
@@ -68,13 +67,12 @@ async def dailyupdatecheck(spotoken,singlecheck=False, artistname = 'artistname'
         print(i)
         await bot.send_message(i, ('ОБНОВОЧКИ\n' + '\n\n'.join(releases[i])))
         bdupdatetime = datetime.now() + timedelta(hours=int(12))
-        scheduler.add_job(dailyupdatecheck, 'date', run_date=bdupdatetime)
-        print('конец апдейтчека')
+        scheduler.add_job(dailyupdatecheck, 'date', run_date=bdupdatetime, args=[spotoken])
+    print('конец дейлиапдейта')
 
 async def gettoken():
     spotoken = getsptfytoken()
-
-    await dailyupdatecheck(spotoken)
+    print('взял токен')
     tokenupdatetime = datetime.now() + timedelta(minutes=int(50))
     scheduler.add_job(gettoken, 'date', run_date=tokenupdatetime)
 
