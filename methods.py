@@ -4,7 +4,6 @@ import json
 import sqlite3
 
 logger = logging.getLogger(__name__)
-
 connection = sqlite3.connect("bot.db")
 cursor = connection.cursor()
 cursor.execute(
@@ -35,10 +34,10 @@ artisturl TEXT
 )
 connection.commit()
 connection.close()
-
+spotoken = ''
 
 def getsptfytoken():  # сгенерить токен споти апи
-    spotoken = requests.post(
+    result = requests.post(
         url="https://accounts.spotify.com/api/token",
         headers={"Content-Type": "application/x-www-form-urlencoded"},
         data={
@@ -49,8 +48,8 @@ def getsptfytoken():  # сгенерить токен споти апи
     )
     print("getsptfytoken")
     return (
-        spotoken.json()["access_token"]
-        if spotoken.status_code == 200
+        result.json()["access_token"]
+        if result.status_code == 200
         else print(logger.critical("не удалось схватить токен??"))
     )
 
@@ -229,7 +228,8 @@ def checkupdates(spotoken,singlecheck=False, artistname = 'artistname'):
                 updaterel += [j]
     updateresult = {}
     for i in updaterel:
-        print(updaterel)
+        print(i)
+        print("хуйняблдядь")
         trueid = spotysearchnameid(i[0], spotoken)[1]
         truename, releasename, releasedate, releasetype, releaseurl, artistsids, artisturls = i
         cursor.execute('SELECT userid FROM Users where artistid = ?',(trueid,))

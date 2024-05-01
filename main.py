@@ -6,12 +6,10 @@ import os
 import asyncio
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from datetime import datetime, timedelta
-
 bot = Bot(token=os.getenv("BOT_TOKEN"))
 dp = Dispatcher()
 scheduler = AsyncIOScheduler(timezone='Europe/London')
 spotoken = getsptfytoken()
-
 @dp.message(Command(commands=["start"]))
 async def process_start_command(message: Message):
     await message.answer("турн зе музик ОН")
@@ -65,14 +63,16 @@ async def dailyupdatecheck(spotoken,singlecheck=False, artistname = 'artistname'
     releases = checkupdates(spotoken,singlecheck,artistname)
     for i in releases.keys():
         print(i)
-        await bot.send_message(i, ('ОБНОВОЧКИ\n' + '\n\n'.join(releases[i])))
+        await bot.send_message(i, ('ОБНОВОЧКИ\n' + '\n\n'.join(releases[i]))[:4000])
         bdupdatetime = datetime.now() + timedelta(hours=int(12))
         scheduler.add_job(dailyupdatecheck, 'date', run_date=bdupdatetime, args=[spotoken])
     print('конец дейлиапдейта')
 
 async def gettoken():
+    global spotoken
     spotoken = getsptfytoken()
-    print('взял токен')
+    print('взял токен',spotoken)
+    return spotoken
 
 async def main():
     print('Бот запущен')
