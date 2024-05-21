@@ -6,10 +6,15 @@ import os
 import asyncio
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from datetime import datetime, timedelta
+from dotenv import load_dotenv, find_dotenv
+
+load_dotenv(find_dotenv())
+
 bot = Bot(token=os.getenv("BOT_TOKEN"))
 dp = Dispatcher()
 scheduler = AsyncIOScheduler(timezone='Europe/London')
 spotoken = getsptfytoken()
+print(spotoken)
 @dp.message(Command(commands=["start"]))
 async def process_start_command(message: Message):
     await message.answer("турн зе музик ОН")
@@ -68,6 +73,7 @@ async def dailyupdatecheck(spotoken,singlecheck=False, artistname = 'artistname'
         scheduler.add_job(dailyupdatecheck, 'date', run_date=bdupdatetime, args=[spotoken])
     print('конец дейлиапдейта')
 
+
 async def gettoken():
     global spotoken
     spotoken = getsptfytoken()
@@ -80,6 +86,7 @@ async def main():
     scheduler.add_job(gettoken, 'interval', minutes=55)
     scheduler.add_job(dailyupdatecheck, 'interval', hours=12,args=[spotoken])
     await gettoken()
+    print(spotoken)
     await dailyupdatecheck(spotoken,singlecheck=False, artistname = 'artistname')
     await dp.start_polling(bot)
 

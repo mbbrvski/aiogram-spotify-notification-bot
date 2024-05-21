@@ -1,6 +1,5 @@
 import requests
 import logging
-import json
 import sqlite3
 
 logger = logging.getLogger(__name__)
@@ -46,7 +45,6 @@ def getsptfytoken():  # сгенерить токен споти апи
             "client_secret": "564c3935fe1f43ada56766e6440796fe",
         },
     )
-    print("getsptfytoken")
     return (
         result.json()["access_token"]
         if result.status_code == 200
@@ -55,7 +53,6 @@ def getsptfytoken():  # сгенерить токен споти апи
 
 
 def spotysearchnameid(name, spotoken):  # вернуть айди музыканта
-    print("spotysearchnameid",name)
     artistid = requests.get(
         url="https://api.spotify.com/v1/search"
         + f"?q={name.replace(' ', '+')}&type=artist",
@@ -91,7 +88,6 @@ def sortcriteria(release):
 
 def spotysearchalbums(name, spotoken, include = 'album%2Csingle%2Cappears_on%2Ccompilation',offset = 0,forbd = False,limit=30):
     truename,trueid = spotysearchnameid(name, spotoken)
-    print("spotysearchalbums")
     if truename == False:
         return "такого исполнителя нету: " + name
     sptalbums = requests.get(
@@ -116,7 +112,6 @@ def spotysearchalbums(name, spotoken, include = 'album%2Csingle%2Cappears_on%2Cc
 
 
 def bdsubs(name,dosub : bool, userid, spotoken):
-    print("bdsubs")
     truename,trueid = spotysearchnameid(name, spotoken)
     if truename == False:
         return "такого исполнителя нету: " + name
@@ -124,7 +119,6 @@ def bdsubs(name,dosub : bool, userid, spotoken):
     cursor = connection.cursor()
     cursor.execute('SELECT artistid FROM Users WHERE artistid = ? and userid =?',(trueid,userid))
     usersubstatus = cursor.fetchall()
-    print("bdsubsend")
     if not usersubstatus and dosub:
         cursor.execute('INSERT INTO Users (userid, artistname, artistid, artisturl) VALUES (?, ?, ?, ?)', (userid, truename, trueid, "https://open.spotify.com/artist/" + trueid))
         cursor.execute('SELECT artistname FROM Releases WHERE artistname = ?',(truename,))
@@ -161,9 +155,7 @@ def addreleases(name, spotoken):
     offset = 0
     limit = 50
     while True:
-        print("цикл добавления")
         releases = spotysearchalbums(truename, spotoken, forbd=True, offset=offset,limit = limit)
-        print("запуск из addreleases")
         print(releases)
         if not releases:
             break
@@ -171,17 +163,14 @@ def addreleases(name, spotoken):
             artistname, releasename, releasedate, releasetype, releaseurl, artistsids, artisturls = i
             cursor.execute('INSERT INTO Releases (artistname, artistid, releasename, releasetype, releasedate, releaseurl, artistsids, artisturl) VALUES (?, ?, ?, ?, ?, ?, ?,?)', (artistname, trueid, releasename, releasetype, releasedate, releaseurl, artistsids, artisturls))
         offset += 50
-    print("addreleases")
     connection.commit()
     connection.close()
 def delreleases(name, spotoken):
-    print("delreleases")
     truename= spotysearchnameid(name, spotoken)[0]
     connection = sqlite3.connect("bot.db")
     cursor = connection.cursor()
     cursor.execute('SELECT artistname FROM Users WHERE artistname = ?',(truename,))
     userdata = cursor.fetchall()
-    print("delreleasesend")
     if not userdata:
         cursor.execute('DELETE FROM Releases WHERE artistname = ?', (truename,))
     else:
@@ -191,12 +180,10 @@ def delreleases(name, spotoken):
 
 
 def showsubsmethod(userid):
-    print("showsubsmethod")
     connection = sqlite3.connect("bot.db")
     cursor = connection.cursor()
     cursor.execute('SELECT artistname, artisturl FROM Users WHERE userid = ?', (userid,))
     info = cursor.fetchall()
-    print("showsubsmethodend")
     return "Ваши подписки:\n" + "\n".join(' - '.join(i) for i in info)
 
 def checkupdates(spotoken,singlecheck=False, artistname = 'artistname'):
@@ -211,7 +198,6 @@ def checkupdates(spotoken,singlecheck=False, artistname = 'artistname'):
         info = [[artistname]]
     for i in info:
         newreleases = []
-        print(info)
         cursor.execute('SELECT releaseurl FROM Releases WHERE artistname = ?',(i[0],))
         oldreleases = cursor.fetchall()
         oldreleases = [j[0] for j in oldreleases]
@@ -228,8 +214,6 @@ def checkupdates(spotoken,singlecheck=False, artistname = 'artistname'):
                 updaterel += [j]
     updateresult = {}
     for i in updaterel:
-        print(i)
-        print("хуйняблдядь")
         trueid = spotysearchnameid(i[0], spotoken)[1]
         truename, releasename, releasedate, releasetype, releaseurl, artistsids, artisturls = i
         cursor.execute('SELECT userid FROM Users where artistid = ?',(trueid,))
@@ -243,6 +227,5 @@ def checkupdates(spotoken,singlecheck=False, artistname = 'artistname'):
             (truename, trueid, releasename, releasetype, releasedate, releaseurl, artistsids, artisturls))
     connection.commit()
     connection.close()
-    print(updateresult)
     print("прочекал апдейты")
     return updateresult
